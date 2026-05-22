@@ -24,8 +24,7 @@ The demo needs an **Account Owned Token** with `Tag:Edit` permission.
 ```bash
 git clone <repo>
 cd tagging-demo
-cp .env.example .env
-# edit .env with your ACCOUNT_ID and API_TOKEN
+./setup.sh   # creates .env and validates your token
 ./demo.sh
 ```
 
@@ -70,8 +69,7 @@ If you prefer to run steps individually instead of `demo.sh`:
 
 ```bash
 # Using .env file (recommended)
-cp .env.example .env
-# edit .env, then:
+./setup.sh   # creates .env and validates token
 ./scripts/tag-resource.sh -t worker -r my-api environment production team platform
 
 # Or using environment variables

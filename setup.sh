@@ -1,28 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Load credentials from .env if present
-if [[ -f .env ]]; then
-  source .env
-fi
-
 echo "╔════════════════════════════════════════════════════════════╗"
 echo "║     Cloudflare Resource Tagging — Demo Setup             ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo ""
 
-if [[ -z "${ACCOUNT_ID:-}" ]]; then
-  echo "❌  ACCOUNT_ID is not set."
-  echo "    export ACCOUNT_ID=\"<your-account-id>\""
-  exit 1
-fi
-
-if [[ -z "${API_TOKEN:-}" ]]; then
-  echo "❌  API_TOKEN is not set."
-  echo "    export API_TOKEN=\"<your-api-token>\""
-  exit 1
-fi
-
+# ─── 1. Check dependencies ───────────────────────────────────
 for cmd in curl jq; do
   if ! command -v $cmd &>/dev/null; then
     echo "❌  Required tool '$cmd' not found. Please install it."
@@ -31,6 +15,41 @@ for cmd in curl jq; do
 done
 echo "✅  curl and jq found"
 
+# ─── 2. Bootstrap .env if missing ────────────────────────────
+if [[ ! -f .env ]]; then
+  echo ""
+  echo "📝  No .env file found. Let's create one."
+  echo ""
+  echo "You'll need an Account Owned Token with Account > Resource Tagging > Edit."
+  echo "Create one at: https://dash.cloudflare.com/profile/api-tokens"
+  echo ""
+
+  read -rp "Account ID: " ACCOUNT_ID
+  read -rsp "API Token:  " API_TOKEN
+  echo ""
+
+  cat > .env <<EOF
+# Cloudflare Resource Tagging Demo — Environment Variables
+# .env is gitignored and will never be committed.
+
+ACCOUNT_ID=${ACCOUNT_ID}
+API_TOKEN=${API_TOKEN}
+EOF
+
+  echo ""
+  echo "✅  .env created"
+fi
+
+# ─── 3. Load credentials ─────────────────────────────────────
+source .env
+
+if [[ -z "${ACCOUNT_ID:-}" || -z "${API_TOKEN:-}" ]]; then
+  echo "❌  .env is missing ACCOUNT_ID or API_TOKEN."
+  echo "    Please edit .env and re-run ./setup.sh"
+  exit 1
+fi
+
+# ─── 4. Validate token ───────────────────────────────────────
 echo ""
 echo "🔑  Validating API token ..."
 RESPONSE=$(curl -sS -X GET \
@@ -47,6 +66,7 @@ fi
 ACCOUNT_NAME=$(echo "$RESPONSE" | jq -r '.result.name')
 echo "✅  Token valid — connected to account: $ACCOUNT_NAME"
 
+# ─── 5. Check Tagging API ────────────────────────────────────
 echo ""
 echo "🔎  Checking Resource Tagging API availability ..."
 TAGS_RESPONSE=$(curl -sS -X GET \
@@ -61,17 +81,11 @@ else
   echo "$TAGS_RESPONSE" | jq -r '.errors // .messages // .' 2>/dev/null || echo "$TAGS_RESPONSE"
 fi
 
+# ─── 6. Done ─────────────────────────────────────────────────
 echo ""
 echo "─────────────────────────────────────────────────────────────"
-echo "🚀  Setup complete! Next steps:"
+echo "🚀  Setup complete! Next step:"
 echo ""
-echo "    1. Tag a resource:"
-echo "       ./scripts/tag-resource.sh -t worker -r my-worker env prod team sre"
-echo ""
-echo "    2. Read tags back:"
-echo "       ./scripts/get-tags.sh -t worker -r my-worker"
-echo ""
-echo "    3. Filter by tag:"
-echo "       ./scripts/filter-resources.sh env prod"
+echo "    ./demo.sh"
 echo ""
 echo "─────────────────────────────────────────────────────────────"
