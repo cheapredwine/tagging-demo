@@ -9,15 +9,27 @@ Without tags, you grep through spreadsheets. With tags, you query.
 
 This demo walks you through that story end-to-end — deploying real Workers, tagging them, and querying them with the Resource Tagging API.
 
+## Preflight: Get a Token
+
+The demo needs an **Account Owned Token** with `Tag:Edit` permission.
+
+1. Go to **Dash → Manage Account → Account API Tokens**
+2. Create a token with:
+   - **Account** `Resource Tagging` permission (Edit)
+   - Account resources: include your account
+3. Copy the token and your Account ID for the next step.
+
 ## One-Command Start
 
 ```bash
 git clone <repo>
 cd tagging-demo
+cp .env.example .env
+# edit .env with your ACCOUNT_ID and API_TOKEN
 ./demo.sh
 ```
 
-The script is fully interactive. It will prompt for your **Account ID** and **API Token**, then walk you through each step with a talk track.
+All scripts automatically load `.env`. You can also use environment variables if you prefer.
 
 ## What Happens in the Demo
 
@@ -50,25 +62,21 @@ Three Workers are deployed (if they don't already exist):
 - `curl` and `jq` installed
 - `npx wrangler` available (for Worker deployment)
 - A Cloudflare account with Resource Tagging enabled
-- An **Account Owned Token** with `Tag:Edit` permission
-
-### Create an Account Owned Token
-
-1. Go to **Dash → Manage Account → Account API Tokens**
-2. Create a token with:
-   - **Account** `Resource Tagging` permission (Edit)
-   - Account resources: include your account
-3. The demo script will prompt for this token at runtime
+- An **Account Owned Token** with `Tag:Edit` permission (see Preflight above)
 
 ## Manual Mode
 
 If you prefer to run steps individually instead of `demo.sh`:
 
 ```bash
+# Using .env file (recommended)
+cp .env.example .env
+# edit .env, then:
+./scripts/tag-resource.sh -t worker -r my-api environment production team platform
+
+# Or using environment variables
 export ACCOUNT_ID="..."
 export API_TOKEN="..."
-
-# Tag a resource
 ./scripts/tag-resource.sh -t worker -r my-api environment production team platform
 
 # Read tags back

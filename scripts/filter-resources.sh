@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Load credentials from .env if present
+if [[ -f .env ]]; then
+  source .env
+fi
+
 usage() {
   cat <<'EOF'
 Usage: filter-resources.sh [-t <resource_type>] <filter_expression>
@@ -37,11 +42,14 @@ fi
 
 FILTER="$1"
 
+# URL-encode the filter so spaces and special chars don't break the request
+FILTER_ENCODED=$(jq -sRr '@uri' <<< "$FILTER")
+
 URL="https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/tags"
 if [[ -n "$RESOURCE_TYPE" ]]; then
-  URL="$URL?resource_type=$RESOURCE_TYPE&filter=$FILTER"
+  URL="$URL?resource_type=$RESOURCE_TYPE&filter=$FILTER_ENCODED"
 else
-  URL="$URL?filter=$FILTER"
+  URL="$URL?filter=$FILTER_ENCODED"
 fi
 
 echo "🔎  Filtering resources"

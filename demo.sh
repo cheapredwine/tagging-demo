@@ -13,6 +13,11 @@
 set -euo pipefail
 
 DEMO_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Load credentials from .env if present
+if [[ -f "${DEMO_DIR}/.env" ]]; then
+  source "${DEMO_DIR}/.env"
+fi
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -41,16 +46,21 @@ pause() {
 # ─── 1. PREREQS ──────────────────────────────────────────────
 header "STEP 0  —  Environment Check"
 
-say "First, we need an Account Owned Token (AOT) with Tag:Edit permission."
-say "If you don't have one, create it at:"
-say "  https://dash.cloudflare.com/profile/api-tokens  →  Account API Tokens"
-
-if [[ -z "${ACCOUNT_ID:-}" ]]; then
-  read -rp "Account ID: " ACCOUNT_ID
-fi
-if [[ -z "${API_TOKEN:-}" ]]; then
-  read -rsp "API Token: " API_TOKEN
-  echo
+if [[ -z "${ACCOUNT_ID:-}" || -z "${API_TOKEN:-}" ]]; then
+  echo -e "${RED}❌  Missing credentials.${NC}"
+  echo ""
+  echo "Set them as environment variables or create a .env file:"
+  echo ""
+  echo "    cp .env.example .env"
+  echo "    # edit .env with your ACCOUNT_ID and API_TOKEN"
+  echo ""
+  echo "Or export directly:"
+  echo "    export ACCOUNT_ID=your-account-id"
+  echo "    export API_TOKEN=your-api-token"
+  echo ""
+  echo "Token needs Account > Resource Tagging > Edit permission."
+  echo "Create one at: https://dash.cloudflare.com/profile/api-tokens"
+  exit 1
 fi
 
 export ACCOUNT_ID API_TOKEN

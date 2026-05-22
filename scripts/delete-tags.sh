@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Load credentials from .env if present
+if [[ -f .env ]]; then
+  source .env
+fi
+
 usage() {
   cat <<'EOF'
 Usage: delete-tags.sh -t <resource_type> -r <resource_id>
