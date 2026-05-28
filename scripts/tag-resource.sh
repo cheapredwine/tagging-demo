@@ -8,22 +8,24 @@ fi
 
 usage() {
   cat <<'EOF'
-Usage: tag-resource.sh -t <resource_type> -r <resource_id> [key value]...
+Usage: tag-resource.sh -t <resource_type> -r <resource_id> [-z <zone_id>] [key value]...
 
 Examples:
   tag-resource.sh -t worker -r my-api environment production team platform
-  tag-resource.sh -t zone -r example.com customer acme-corp
+  tag-resource.sh -t zone -r <zone_id> -z <zone_id> customer acme-corp
 EOF
   exit 1
 }
 
 RESOURCE_TYPE=""
 RESOURCE_ID=""
+ZONE_ID=""
 
-while getopts "t:r:h" opt; do
+while getopts "t:r:z:h" opt; do
   case $opt in
     t) RESOURCE_TYPE="$OPTARG" ;;
     r) RESOURCE_ID="$OPTARG" ;;
+    z) ZONE_ID="$OPTARG" ;;
     h|*) usage ;;
   esac
 done
@@ -53,8 +55,14 @@ BODY=$(jq -n \
   --argjson tags "$TAGS_JSON" \
   '{resource_type: $rt, resource_id: $rid, tags: $tags}')
 
+if [[ -n "$ZONE_ID" ]]; then
+  URL="https://api.cloudflare.com/client/v4/zones/$ZONE_ID/tags"
+else
+  URL="https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/tags"
+fi
+
 RESPONSE=$(curl -sS -X PUT \
-  "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/tags" \
+  "$URL" \
   -H "Authorization: Bearer $API_TOKEN" \
   -H "Content-Type: application/json" \
   -d "$BODY")
