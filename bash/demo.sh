@@ -149,8 +149,10 @@ cf_api() {
 
 worker_exists() {
   local name="$1"
+  # Use the tagging API (same token) instead of Workers API
+  # which requires a separate Workers:Read permission.
   local resp
-  resp=$(cf_api "https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/workers/scripts/${name}")
+  resp=$(cf_api "https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/tags?resource_type=worker&resource_id=${name}")
   [[ $(echo "$resp" | jq -r '.success') == "true" ]]
 }
 
