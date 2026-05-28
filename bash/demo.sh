@@ -12,7 +12,7 @@
 
 set -euo pipefail
 
-DEMO_DIR="$(cd "$(dirname "$0")" && pwd)"
+DEMO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # ─── Parse args ──────────────────────────────────────────────
 CLEANUP_ONLY=false

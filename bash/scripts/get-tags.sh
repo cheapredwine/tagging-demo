@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Load credentials from .env if present
-if [[ -f .env ]]; then
-  source .env
+if [[ -f ../.env ]]; then
+  source ../.env
 fi
 
 usage() {
