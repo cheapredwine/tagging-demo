@@ -9,6 +9,47 @@ Without tags, you grep through spreadsheets. With tags, you query.
 
 This demo walks you through that story end-to-end — deploying real Workers, tagging them, and querying them with the Resource Tagging API.
 
+## Quick Start
+
+Pick your shell:
+
+### Bash
+
+```bash
+git clone <repo>
+cd tagging-demo
+bash/setup.sh         # creates .env and validates your token
+bash/demo.sh
+```
+
+### PowerShell
+
+```powershell
+git clone <repo>
+cd tagging-demo
+powershell/setup.ps1  # creates .env and validates your token
+powershell/demo.ps1
+```
+
+Both read from the same `.env` file at the project root. You can also use environment variables.
+
+## Project Structure
+
+```
+tagging-demo/
+├── bash/              # Bash scripts
+│   ├── demo.sh
+│   ├── setup.sh
+│   └── scripts/
+├── powershell/        # PowerShell scripts
+│   ├── demo.ps1
+│   ├── setup.ps1
+│   └── scripts/
+├── worker/            # Shared demo Worker source
+├── .env.example       # Copy to .env and fill in credentials
+└── README.md
+```
+
 ## Preflight: Get a Token
 
 The demo needs an **Account Owned Token** with the **`Resource Tagging`** permission.
@@ -31,22 +72,7 @@ ZONE_ID=your-zone-id-here
 
 Find the Zone ID on the right sidebar of any zone's overview page in the Cloudflare dashboard.
 
-## One-Command Start
-
-```bash
-git clone <repo>
-cd tagging-demo
-./setup.sh   # creates .env and validates your token
-./demo.sh
-```
-
-**Skip deployments** if the Workers already exist:
-
-```bash
-./demo.sh --skip-deploy
-```
-
-All scripts automatically load `.env`. You can also use environment variables if you prefer.
+**Note for zone tagging:** Your token also needs **Zone > Resource Tagging > Edit** permission for the specific zone.
 
 ## What Happens in the Demo
 
@@ -72,49 +98,38 @@ Three Workers are deployed (if they don't already exist):
 | `tagging-demo-batch` | `environment=production`, `team=data`, `tier=standard` |
 | `tagging-demo-cache` | `environment=production`, `team=platform`, `tier=critical` |
 
+## Skip Deployments
 
-
-## Prerequisites
-
-- `curl` and `jq` installed
-- `npx wrangler` available (for Worker deployment)
-- A Cloudflare account with Resource Tagging enabled
-- An **Account Owned Token** with `Tag:Edit` permission (see Preflight above)
-
-## Manual Mode
-
-If you prefer to run steps individually instead of `demo.sh`:
+If the Workers already exist, skip deployment:
 
 ```bash
-# Using .env file (recommended)
-./setup.sh   # creates .env and validates token
-./scripts/tag-resource.sh -t worker -r my-api environment production team platform
+bash/demo.sh --skip-deploy
+```
 
-# Tag a zone (zone-level resource)
-# Note: for zone resources, resource_id must be the Zone ID, not the domain name
-./scripts/tag-resource.sh -t zone -r 6bcf8859da225392d8fae3351eb5de3e -z 6bcf8859da225392d8fae3351eb5de3e environment production team platform
+```powershell
+powershell/demo.ps1 -SkipDeploy
+```
 
-# Or using environment variables
-export ACCOUNT_ID="..."
-export API_TOKEN="..."
-./scripts/tag-resource.sh -t worker -r my-api environment production team platform
+## Manual Mode (Bash)
 
-# Read tags back
-./scripts/get-tags.sh -t worker -r my-api
+```bash
+bash/setup.sh
+bash/scripts/tag-resource.sh -t worker -r my-api environment production team platform
+bash/scripts/get-tags.sh -t worker -r my-api
+bash/scripts/filter-resources.sh -t worker team=platform environment=production
+bash/scripts/delete-tags.sh -t worker -r my-api
+bash/scripts/bulk-tag.sh worker environment production w1 w2 w3
+```
 
-# Read zone tags back
-# Note: for zone resources, resource_id must be the Zone ID
-./scripts/get-tags.sh -t zone -r <zone_id> -z <zone_id>
+## Manual Mode (PowerShell)
 
-# Filter resources
-./scripts/filter-resources.sh -t worker team=platform environment=production
-
-# Delete tags
-./scripts/delete-tags.sh -t worker -r my-api
-
-# Delete zone tags
-# Note: for zone resources, resource_id must be the Zone ID
-./scripts/delete-tags.sh -t zone -r <zone_id> -z <zone_id>
+```powershell
+powershell/setup.ps1
+powershell/scripts/Tag-Resource.ps1 -ResourceType worker -ResourceId my-api -Tags environment, production, team, platform
+powershell/scripts/Get-Tags.ps1 -ResourceType worker -ResourceId my-api
+powershell/scripts/Find-Resources.ps1 -ResourceType worker team=platform environment=production
+powershell/scripts/Remove-Tags.ps1 -ResourceType worker -ResourceId my-api
+powershell/scripts/Add-BulkTags.ps1 -ResourceType worker -TagKey environment -TagValue production -ResourceIds w1, w2, w3
 ```
 
 ## API Summary
@@ -125,7 +140,7 @@ export API_TOKEN="..."
 |--------|--------|----------|
 | Set tags | `PUT` | `/accounts/{id}/tags` |
 | Get tags | `GET` | `/accounts/{id}/tags?resource_type=X&resource_id=Y` |
-| Delete tags | `DELETE` | `/accounts/{id}/tags?resource_type=X&resource_id=Y` |
+| Delete tags | `DELETE` | `/accounts/{id}/tags` |
 | Filter resources | `GET` | `/accounts/{id}/tags/resources?tag=...` |
 
 ### Zone-level resources (zones, DNS records, custom hostnames, etc.)

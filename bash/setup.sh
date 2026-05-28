@@ -16,8 +16,9 @@ done
 echo "✅  curl and jq found"
 
 # ─── 2. Gather credentials ───────────────────────────────────
-if [[ -f .env ]]; then
-  source .env
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+if [[ -f "${SCRIPT_DIR}/.env" ]]; then
+  source "${SCRIPT_DIR}/.env"
 fi
 
 if [[ -z "${ACCOUNT_ID:-}" || -z "${API_TOKEN:-}" ]]; then
@@ -67,8 +68,8 @@ fi
 echo "✅  Token valid — Resource Tagging API is available"
 
 # ─── 4. Write .env only after validation ─────────────────────
-if [[ ! -f .env ]]; then
-  cat > .env <<EOF
+if [[ ! -f "${SCRIPT_DIR}/.env" ]]; then
+  cat > "${SCRIPT_DIR}/.env" <<EOF
 # Cloudflare Resource Tagging Demo — Environment Variables
 # .env is gitignored and will never be committed.
 
