@@ -8,20 +8,22 @@ fi
 
 usage() {
   cat <<'EOF'
-Usage: filter-resources.sh [-t <resource_type>] <filter_expression>
+Usage: filter-resources.sh [-t <resource_type>] <tag_filter>...
 
-Filter expressions:
-  key:value           exact match
-  key:value AND key2:value2
-  key:value OR key2:value2
-  NOT key:value
-  key                 key exists
+Filter syntax (one tag filter per argument):
+  key=value           key equals value
+  key=value1,value2   key equals value1 OR value2
+  key                 key exists (any value)
+  !key                key does NOT exist
+  key!=value          key does NOT equal value
+
+Multiple filters combine with AND logic.
 
 Examples:
-  filter-resources.sh environment production
-  filter-resources.sh -t worker "team:platform AND environment:production"
-  filter-resources.sh -t zone "NOT environment:staging"
-  filter-resources.sh -t worker "cost-center"
+  filter-resources.sh environment=production
+  filter-resources.sh -t worker team=platform environment=production
+  filter-resources.sh -t worker environment!=staging
+  filter-resources.sh -t worker cost-center
 EOF
   exit 1
 }
@@ -40,23 +42,28 @@ if [[ $# -lt 1 ]]; then
   usage
 fi
 
-FILTER="$1"
+# Build URL with multiple tag params
+URL="https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/tags/resources"
 
-# URL-encode the filter so spaces and special chars don't break the request
-FILTER_ENCODED=$(jq -sRr '@uri' <<< "$FILTER")
+FIRST=1
+for FILTER in "$@"; do
+  if [[ $FIRST -eq 1 ]]; then
+    URL="${URL}?tag=$(jq -sRr '@uri' <<< "$FILTER")"
+    FIRST=0
+  else
+    URL="${URL}&tag=$(jq -sRr '@uri' <<< "$FILTER")"
+  fi
+done
 
-URL="https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/tags"
 if [[ -n "$RESOURCE_TYPE" ]]; then
-  URL="$URL?resource_type=$RESOURCE_TYPE&filter=$FILTER_ENCODED"
-else
-  URL="$URL?filter=$FILTER_ENCODED"
+  URL="${URL}&type=$RESOURCE_TYPE"
 fi
 
 echo "🔎  Filtering resources"
 if [[ -n "$RESOURCE_TYPE" ]]; then
   echo "    Type:  $RESOURCE_TYPE"
 fi
-echo "    Filter: $FILTER"
+echo "    Filters: $*"
 echo ""
 
 RESPONSE=$(curl -sS -X GET "$URL" \
@@ -64,7 +71,7 @@ RESPONSE=$(curl -sS -X GET "$URL" \
   -H "Content-Type: application/json")
 
 if [[ $(echo "$RESPONSE" | jq -r '.success') == "true" ]]; then
-  COUNT=$(echo "$RESPONSE" | jq '.result | length')
+  COUNT=$(echo "$RESPONSE" | jq '.result // [] | length')
   echo "✅  Found $COUNT resource(s)"
   echo ""
   echo "$RESPONSE" | jq '.result // []'
