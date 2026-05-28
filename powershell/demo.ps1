@@ -99,8 +99,11 @@ function Invoke-CfApi($url) {
 }
 
 function Test-WorkerExists($name) {
+    # Use the tagging API (same token) instead of Workers API
+    # which requires a separate Workers:Read permission.
     try {
-        $resp = Invoke-CfApi "https://api.cloudflare.com/client/v4/accounts/$($env:ACCOUNT_ID)/workers/scripts/$name"
+        $resp = Invoke-CfApi "https://api.cloudflare.com/client/v4/accounts/$($env:ACCOUNT_ID)/tags?resource_type=worker&resource_id=$name"
+        # success=true means the worker exists (even if it has no tags)
         return $resp.success -eq $true
     } catch {
         return $false
