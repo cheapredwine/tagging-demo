@@ -35,7 +35,7 @@ param(
 )
 
 # ─── Load credentials ────────────────────────────────────────
-$ScriptDir = Split-Path -Parent $PSScriptRoot
+$ScriptDir = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $EnvPath = Join-Path $ScriptDir '.env'
 if (Test-Path $EnvPath) {
     Get-Content $EnvPath | ForEach-Object {

@@ -4,7 +4,7 @@
 
 Live demo for Cloudflare Resource Tagging API. Two implementations:
 - `bash/` — Original bash scripts
-- `powershell/` — PowerShell port (in progress)
+- `powershell/` — PowerShell port (complete and tested)
 
 Shared assets at root: `worker/`, `.env`, `.env.example`
 
@@ -25,21 +25,25 @@ Shared assets at root: `worker/`, `.env`, `.env.example`
   - `powershell/scripts/Add-BulkTags.ps1`
 - [x] README updated for dual structure
 - [x] `.env` has real `ZONE_ID=6bcf8859da225392d8fae3351eb5de3e` (jsherron.com)
+- [x] **Syntax validation** — all 7 `.ps1` files pass
+- [x] **Makefile deleted** — broken references, no dependents
+- [x] **Bug fixes from testing:**
+  - `demo.ps1` Step 6: `$existingTags = @{}` → `$null` fallback to avoid hashtable serialization bug
+  - `Tag-Resource.ps1`: Added `Position=0/1` to prevent `ZoneId` from stealing positional args
+- [x] **`setup.ps1` tested** — token validation works with real credentials
+- [x] **`demo.ps1` full run tested** — deploy, tag, filter, GET-merge-PUT, zone tagging all work
+- [x] **Helper scripts tested individually** — all 5 work correctly
+- [x] **Cleanup flow tested** — removes tags and workers successfully
 
 ### 🚧 In Progress / Not Yet Done
-- [ ] **Test PowerShell scripts** — none have been run yet
-  - Test `setup.ps1` with real credentials
-  - Test `demo.ps1` basic flow
-  - Test each helper script individually
-- [ ] **Fix any PowerShell bugs found during testing**
-- [ ] **Update Makefile** for dual structure (or delete if not needed)
-- [ ] **Syntax validation** — run `pwsh` syntax checks on all `.ps1` files
+- [ ] **Tag v2** when ready
 
 ### 📝 Known Issues / Decisions
 - Zone tagging requires Zone ID as `resource_id` (not domain name) — documented in README
 - Bash scripts reference `../.env` since they're now in `bash/scripts/`
-- PowerShell scripts use same pattern: compute root dir from `$PSScriptRoot`
-- `Find-Resources.ps1` uses `[System.Web.HttpUtility]::UrlEncode` — may need `System.Web` assembly loaded
+- PowerShell scripts compute root dir via `Split-Path -Parent (Split-Path -Parent $PSScriptRoot)` to reach repo root `.env`
+- `ValueFromRemainingArguments` params (`Tags`, `Filters`, `ResourceIds`) must be passed positionally when using `pwsh -File` — documented in README
+- `Find-Resources.ps1` uses `[System.Web.HttpUtility]::UrlEncode` — works on PS 7.4.6 without explicit assembly load
 
 ## Architecture
 
@@ -101,16 +105,12 @@ done
 
 ## Next Session Priorities
 
-1. **Test PowerShell setup.ps1** — validate token flow, .env creation
-2. **Test PowerShell demo.ps1** — full dry run or real run
-3. **Fix any runtime bugs** in PowerShell scripts
-4. **Delete Makefile** or update it for both bash and PowerShell
-5. **Consider adding CI/tests** for both implementations
-6. **Tag v2** when PowerShell is fully working
+1. **Tag v2** when ready
+2. **Consider adding CI/tests** for both implementations
 
 ## Environment
 
 - macOS (darwin), arm64
 - PowerShell 7.4.6 at `~/.local/bin/pwsh`
 - Repo: https://github.com/cheapredwine/tagging-demo
-- Current tag: `v1` (bash only)
+- Current tag: `v1` (bash only) — PowerShell ready for `v2`

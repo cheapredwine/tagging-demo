@@ -110,6 +110,18 @@ bash/demo.sh --skip-deploy
 powershell/demo.ps1 -SkipDeploy
 ```
 
+## Cleanup
+
+Remove all demo tags and Workers:
+
+```bash
+bash/demo.sh --cleanup
+```
+
+```powershell
+powershell/demo.ps1 -Cleanup
+```
+
 ## Manual Mode (Bash)
 
 ```bash
@@ -124,12 +136,20 @@ bash/scripts/bulk-tag.sh worker environment production w1 w2 w3
 ## Manual Mode (PowerShell)
 
 ```powershell
-powershell/setup.ps1
-powershell/scripts/Tag-Resource.ps1 -ResourceType worker -ResourceId my-api -Tags environment, production, team, platform
+# From PowerShell interactive shell:
+powershell/scripts/Tag-Resource.ps1 -ResourceType worker -ResourceId my-api environment production team platform
 powershell/scripts/Get-Tags.ps1 -ResourceType worker -ResourceId my-api
 powershell/scripts/Find-Resources.ps1 -ResourceType worker team=platform environment=production
 powershell/scripts/Remove-Tags.ps1 -ResourceType worker -ResourceId my-api
-powershell/scripts/Add-BulkTags.ps1 -ResourceType worker -TagKey environment -TagValue production -ResourceIds w1, w2, w3
+powershell/scripts/Add-BulkTags.ps1 -ResourceType worker -TagKey environment -TagValue production w1 w2 w3
+```
+
+**Note:** Parameters marked `ValueFromRemainingArguments` (`Tags`, `Filters`, `ResourceIds`) must be passed as positional trailing arguments — do not use the parameter name (e.g., `-Tags` or `-ResourceIds`).
+
+On macOS or Linux, use the `pwsh` binary directly:
+
+```bash
+~/.local/bin/pwsh -File powershell/scripts/Tag-Resource.ps1 -ResourceType worker -ResourceId my-api environment production team platform
 ```
 
 ## API Summary
