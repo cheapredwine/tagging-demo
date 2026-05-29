@@ -24,10 +24,10 @@
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)]
+    [Parameter(Mandatory, Position=0)]
     [string]$ResourceType,
 
-    [Parameter(Mandatory)]
+    [Parameter(Mandatory, Position=1)]
     [string]$ResourceId,
 
     [string]$ZoneId,
@@ -37,7 +37,7 @@ param(
 )
 
 # ─── Load credentials ────────────────────────────────────────
-$ScriptDir = Split-Path -Parent $PSScriptRoot
+$ScriptDir = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $EnvPath = Join-Path $ScriptDir '.env'
 if (Test-Path $EnvPath) {
     Get-Content $EnvPath | ForEach-Object {

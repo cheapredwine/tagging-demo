@@ -16,8 +16,18 @@
 [CmdletBinding()]
 param(
     [switch]$Cleanup,
-    [switch]$SkipDeploy
+    [switch]$SkipDeploy,
+    [switch]$Help
 )
+
+if ($Help) {
+    Write-Host "Usage: demo.ps1 [-Cleanup] [-SkipDeploy]"
+    Write-Host ""
+    Write-Host "  -Cleanup     Remove all demo tags and workers (skips demo)"
+    Write-Host "  -SkipDeploy  Skip Worker deployment if they already exist"
+    Write-Host "  -Help        Show this help"
+    exit 0
+}
 
 $ErrorActionPreference = 'Stop'
 
@@ -414,7 +424,7 @@ try {
     $existingTags = $getResp.result.tags
 } catch {
     warn "  Failed: $($_.Exception.Message)"
-    $existingTags = @{}
+    $existingTags = $null
 }
 
 # 2. Merge new tag value
