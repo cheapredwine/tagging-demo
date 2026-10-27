@@ -1,5 +1,10 @@
 # Cloudflare Resource Tagging — Live Demo
 
+> ⚠️ **NOT OFFICIAL CLOUDFLARE.** Not affiliated with or endorsed by Cloudflare, Inc.
+> NO WARRANTIES, EXPRESS OR IMPLIED. Effectively untested demo code — read everything
+> and dry-run before you run. You assume all risk. See [DISCLAIMER.md](./DISCLAIMER.md).
+
+
 **Use case: Production Fleet Audit**
 
 You're an SRE managing 50+ Workers. A CVE drops and leadership asks:
